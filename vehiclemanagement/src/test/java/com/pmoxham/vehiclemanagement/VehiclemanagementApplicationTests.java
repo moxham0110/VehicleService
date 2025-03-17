@@ -1,4 +1,4 @@
-package com.pmoxham.vehiclemanagement.vehiclemanagement;
+package com.pmoxham.vehiclemanagement;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

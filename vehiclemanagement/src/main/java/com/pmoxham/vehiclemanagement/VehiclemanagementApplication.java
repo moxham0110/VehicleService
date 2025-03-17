@@ -1,4 +1,4 @@
-package com.pmoxham.vehiclemanagement.vehiclemanagement;
+package com.pmoxham.vehiclemanagement;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

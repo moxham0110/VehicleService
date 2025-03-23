@@ -1,8 +1,11 @@
 package com.pmoxham.vehiclemanagement.controller;
 
-import com.pmoxham.vehiclemanagement.model.Vehicle;
+import com.pmoxham.vehiclemanagement.dto.ResponseDTO;
+import com.pmoxham.vehiclemanagement.dto.VehicleDTO;
 import com.pmoxham.vehiclemanagement.service.VehicleService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,19 +17,44 @@ public class VehicleController {
     private VehicleService service;
 
     @GetMapping
-    public List<Vehicle> getAllVehicles() { return service.getAllVehicles(); }
+    public ResponseEntity<List<VehicleDTO>> getAllVehicles() {
+        return ResponseEntity.ok(service.getAllVehicles());
+    }
 
     @GetMapping("/{id}")
-    public Vehicle getVehicle(@PathVariable Long id) { return service.getVehicleById(id); }
+    public ResponseEntity<VehicleDTO> getVehicle(@Valid @PathVariable Long id) {
+        return service.getVehicleById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
     @PostMapping
-    public Vehicle createVehicle(@RequestBody Vehicle vehicle) { return service.createVehicle(vehicle); }
+    public ResponseEntity<ResponseDTO> createVehicle(@Valid @RequestBody VehicleDTO vehicleDTO) {
+        service.createVehicle(vehicleDTO);
+        ResponseDTO response = new ResponseDTO();
+        response.setStatusCode("201");
+        response.setStatusMsg("Vehicle created successfully");
+        return ResponseEntity.ok(response);
+    }
 
     @PutMapping("/{id}")
-    public Vehicle updateVehicle(@PathVariable Long id, @RequestBody Vehicle vehicle) {
-        return service.updateVehicle(id, vehicle);
+    public ResponseEntity<ResponseDTO> updateVehicle(@Valid @PathVariable Long id, @RequestBody VehicleDTO vehicleDTO) {
+        return service.updateVehicle(id, vehicleDTO)
+                .map(updatedVehicle -> {
+                    ResponseDTO response = new ResponseDTO();
+                    response.setStatusCode("200");
+                    response.setStatusMsg("Vehicle updated successfully");
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public void deleteVehicle(@PathVariable Long id) { service.deleteVehicle(id); }
+    public ResponseEntity<ResponseDTO> deleteVehicle(@PathVariable Long id) {
+        service.deleteVehicle(id);
+        ResponseDTO response = new ResponseDTO();
+        response.setStatusCode("204");
+        response.setStatusMsg("Vehicle deleted successfully");
+        return ResponseEntity.ok(response);
+    }
 }

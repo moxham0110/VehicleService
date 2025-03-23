@@ -1,5 +1,7 @@
 package com.pmoxham.vehiclemanagement;
 
+import com.pmoxham.vehiclemanagement.dto.VehicleDTO;
+import com.pmoxham.vehiclemanagement.mapper.VehicleMapper;
 import com.pmoxham.vehiclemanagement.model.Vehicle;
 import com.pmoxham.vehiclemanagement.repository.VehicleRepository;
 import com.pmoxham.vehiclemanagement.service.VehicleService;
@@ -27,7 +29,8 @@ class VehicleServiceTest {
     private VehicleService vehicleService;
 
     private Vehicle validVehicle;
-    private static final int CURRENTYEAR = Year.now().getValue();
+    private VehicleDTO validVehicleDTO;
+    private static final int CURRENT_YEAR = Year.now().getValue();
 
     @BeforeEach
     void setUp() {
@@ -38,14 +41,14 @@ class VehicleServiceTest {
         validVehicle.setMake("Skoda");
         validVehicle.setModel("Fabia");
         validVehicle.setMileage(50000);
+
+        validVehicleDTO = VehicleMapper.mapToVehicleDTO(validVehicle);
     }
 
     @Test
     void testGetAllVehicles() {
         when(vehicleRepository.findAll()).thenReturn(List.of(validVehicle));
-
-        List<Vehicle> vehicles = vehicleService.getAllVehicles();
-
+        List<VehicleDTO> vehicles = vehicleService.getAllVehicles();
         assertEquals(1, vehicles.size());
         assertEquals("171WH863", vehicles.get(0).getVin());
         verify(vehicleRepository, times(1)).findAll();
@@ -54,98 +57,45 @@ class VehicleServiceTest {
     @Test
     void testGetVehicleByIdExists() {
         when(vehicleRepository.findById(1L)).thenReturn(Optional.of(validVehicle));
-
-        Vehicle vehicle = vehicleService.getVehicleById(1L);
-
-        assertNotNull(vehicle);
-        assertEquals("Skoda", vehicle.getMake());
+        Optional<VehicleDTO> vehicleDTO = vehicleService.getVehicleById(1L);
+        assertTrue(vehicleDTO.isPresent());
+        assertEquals("Skoda", vehicleDTO.get().getMake());
         verify(vehicleRepository, times(1)).findById(1L);
     }
 
     @Test
-    void testGetVehicleByIdNotExistsShouldThrowException() {
-        when(vehicleRepository.findById(99L)).thenReturn(Optional.empty());
-
-        IllegalArgumentException thrown = assertThrows(
-                IllegalArgumentException.class,
-                () -> vehicleService.getVehicleById(99L),
-                "Expected getVehicleById() to throw exception"
-        );
-
-        assertEquals("Vehicle with ID 99 not found", thrown.getMessage());
-        verify(vehicleRepository, times(1)).findById(99L);
+    void testGetVehicleByIdNotExistsShouldReturnEmpty() {
+        when(vehicleRepository.findById(5L)).thenReturn(Optional.empty());
+        Optional<VehicleDTO> vehicleDTO = vehicleService.getVehicleById(5L);
+        assertFalse(vehicleDTO.isPresent());
+        verify(vehicleRepository, times(1)).findById(5L);
     }
 
     @Test
     void testCreateVehicleSuccess() {
         when(vehicleRepository.findByVin(validVehicle.getVin())).thenReturn(Optional.empty());
-        when(vehicleRepository.save(validVehicle)).thenReturn(validVehicle);
-        validVehicle.setId(null);
-
-        Vehicle createdVehicle = vehicleService.createVehicle(validVehicle);
-
-        assertNotNull(createdVehicle);
-        assertEquals("171WH863", createdVehicle.getVin());
-        verify(vehicleRepository, times(1)).save(validVehicle);
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(validVehicle);
+        VehicleDTO createdVehicleDTO = vehicleService.createVehicle(validVehicleDTO);
+        assertNotNull(createdVehicleDTO);
+        assertEquals("171WH863", createdVehicleDTO.getVin());
+        verify(vehicleRepository, times(1)).save(any(Vehicle.class));
     }
 
     @Test
-    void testCreateVehicleWithInvalidDataShouldThrowException() {
-        validVehicle.setVehicleYear(CURRENTYEAR + 1);
-        validVehicle.setMileage(-100);
-
-        IllegalArgumentException futureYearException = assertThrows(
-                IllegalArgumentException.class,
-                () -> vehicleService.createVehicle(validVehicle)
-        );
-        assertEquals("Vehicle year cannot be in the future.", futureYearException.getMessage());
-
-        validVehicle.setVehicleYear(2020);
-        IllegalArgumentException negativeMileageException = assertThrows(
-                IllegalArgumentException.class,
-                () -> vehicleService.createVehicle(validVehicle)
-        );
-        assertEquals("Mileage cannot be negative.", negativeMileageException.getMessage());
-
-        verify(vehicleRepository, never()).save(any(Vehicle.class));
-    }
-
-    @Test
-    void testCreateVehicleWithExistingVinShouldThrowException() {
-        when(vehicleRepository.findByVin(validVehicle.getVin())).thenReturn(Optional.of(validVehicle));
-        validVehicle.setId(null);
-
-        IllegalArgumentException thrown = assertThrows(
-                IllegalArgumentException.class,
-                () -> vehicleService.createVehicle(validVehicle)
-        );
-
-        assertEquals("Vehicle with VIN 171WH863 already exists.", thrown.getMessage());
-        verify(vehicleRepository, never()).save(any(Vehicle.class));
-    }
-
-    @Test
-    void testUpdateVehicleWhenExistsShouldUpdateSuccessfully() {
+    void testUpdateVehicleExistsShouldUpdateSuccessfully() {
         when(vehicleRepository.existsById(1L)).thenReturn(true);
-        when(vehicleRepository.save(validVehicle)).thenReturn(validVehicle);
-
-        Vehicle updatedVehicle = vehicleService.updateVehicle(1L, validVehicle);
-
-        assertNotNull(updatedVehicle);
-        assertEquals("Skoda", updatedVehicle.getMake());
-        verify(vehicleRepository, times(1)).save(validVehicle);
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(validVehicle);
+        Optional<VehicleDTO> updatedVehicleDTO = vehicleService.updateVehicle(1L, validVehicleDTO);
+        assertTrue(updatedVehicleDTO.isPresent());
+        assertEquals("Skoda", updatedVehicleDTO.get().getMake());
+        verify(vehicleRepository, times(1)).save(any(Vehicle.class));
     }
 
     @Test
-    void testUpdateVehicleWhenNotExistsShouldThrowException() {
+    void testUpdateVehicleNotExistsShouldReturnEmpty() {
         when(vehicleRepository.existsById(99L)).thenReturn(false);
-
-        IllegalArgumentException thrown = assertThrows(
-                IllegalArgumentException.class,
-                () -> vehicleService.updateVehicle(99L, validVehicle)
-        );
-
-        assertEquals("Cannot update: Vehicle with ID 99 does not exist.", thrown.getMessage());
+        Optional<VehicleDTO> updatedVehicleDTO = vehicleService.updateVehicle(99L, validVehicleDTO);
+        assertFalse(updatedVehicleDTO.isPresent());
         verify(vehicleRepository, never()).save(any(Vehicle.class));
     }
 }

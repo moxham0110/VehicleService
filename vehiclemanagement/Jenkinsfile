@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+
+    environment {
+        MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/moxham0110/VehicleService.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('vehiclemanagement') {
+                    echo 'Building the project...'
+                    bat "mvn clean compile"
+                }
+            }
+        }
+
+        stage('Unit & Integration Tests') {
+            steps {
+                dir('vehiclemanagement') {
+                    echo 'Running unit & integration tests...'
+                    bat "mvn test"
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Karate Tests') {
+            steps {
+                dir('vehiclemanagement') {
+                    echo 'Running Karate tests...'
+                    bat "mvn test -Dkarate.options=\"--tags @smoke\""
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Code Coverage') {
+            steps {
+                dir('vehiclemanagement') {
+                    echo 'Generating JaCoCo report...'
+                    bat "mvn jacoco:report"
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir('vehiclemanagement') {
+                    withSonarQubeEnv('sonarqube') {
+                        bat """
+                        mvn sonar:sonar ^
+                            -Dsonar.projectKey=VehicleManagement ^
+                            -Dsonar.projectName=VehicleManagement ^
+                            -Dsonar.projectVersion=1.0 ^
+                            -Dsonar.projectBaseDir=vehiclemanagement ^
+                            -Dsonar.sources=src/main/java ^
+                            -Dsonar.tests=src/test/java ^
+                            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml ^
+                            -Dsonar.language=java ^
+                            -Dsonar.sourceEncoding=UTF-8 ^
+                            -Dsonar.host.url=http://localhost:9000 ^
+                            -Dsonar.scm.disabled=true ^
+                            -Dsonar.java.binaries=target/classes ^
+                            -Dsonar.token=sqa_60b0aeb96bc107be6ee2c8765ad03ed827c19cf9
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                dir('vehiclemanagement') {
+                    echo 'Packaging the application...'
+                    bat "mvn package"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Build failed.'
+        }
+    }
+}
+
+
+

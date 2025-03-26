@@ -78,7 +78,7 @@ class VehicleControllerTest {
         mockMvc.perform(post("/vehicles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(vehicleDTO)))
-                .andExpect(status().isOk())
+                .andExpect(status().is(201))
                 .andExpect(jsonPath("$.statusCode", is("201")))
                 .andExpect(jsonPath("$.statusMsg", is("Vehicle created successfully")));
     }

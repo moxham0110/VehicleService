@@ -21,21 +21,12 @@ pipeline {
             }
         }
 
-        stage('Unit & Integration Tests') {
+        stage('Unit & Integration & Karate Tests') {
             steps {
                 dir('vehiclemanagement') {
-                    echo 'Running unit & integration tests...'
+                    echo 'Running unit & integration & karate tests...'
+                    bat "mvn test -Dtest=KarateSpringBootTestIT"
                     bat "mvn test"
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('Karate Tests') {
-            steps {
-                dir('vehiclemanagement') {
-                    echo 'Running Karate tests...'
-                    bat "mvn test -Dkarate.options=\"--tags @smoke\""
                     junit 'target/surefire-reports/*.xml'
                 }
             }

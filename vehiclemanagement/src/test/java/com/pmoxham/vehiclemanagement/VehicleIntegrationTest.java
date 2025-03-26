@@ -1,4 +1,4 @@
-package com.pmoxham.vehiclemanagement.integration;
+package com.pmoxham.vehiclemanagement;
 
 import com.pmoxham.vehiclemanagement.dto.ResponseDTO;
 import com.pmoxham.vehiclemanagement.dto.VehicleDTO;
@@ -27,7 +27,7 @@ public class VehicleIntegrationTest {
     @BeforeEach
     void setUp() {
         testVehicle = new VehicleDTO();
-        testVehicle.setVin("171WH863");
+        testVehicle.setVin("171WH963");
         testVehicle.setVehicleYear(2022);
         testVehicle.setMake("Skoda");
         testVehicle.setModel("Fabia");
@@ -37,7 +37,7 @@ public class VehicleIntegrationTest {
     @Test
     void testCreateVehicle() {
         ResponseEntity<ResponseDTO> response = restTemplate.postForEntity("/vehicles", testVehicle, ResponseDTO.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getStatusMsg()).isEqualTo("Vehicle created successfully");
     }
@@ -62,6 +62,7 @@ public class VehicleIntegrationTest {
 
     @Test
     void testUpdateVehicle() {
+        testVehicle.setVin("171WH999");
         testVehicle.setModel("Camry");
         testVehicle.setMileage(20000.0);
         HttpEntity<VehicleDTO> requestEntity = new HttpEntity<>(testVehicle);

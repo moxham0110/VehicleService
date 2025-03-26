@@ -34,7 +34,7 @@ public class VehicleController {
         ResponseDTO response = new ResponseDTO();
         response.setStatusCode("201");
         response.setStatusMsg("Vehicle created successfully");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(201).body(response);
     }
 
     @PutMapping("/{id}")

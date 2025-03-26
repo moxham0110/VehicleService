@@ -12,8 +12,8 @@ Feature: Vehicle API
     Given path '1'
     When method get
     Then status 200
-    And match response.make == 'Honda'
-    And match response.model == 'Civic'
+    And match response.make == 'Skoda'
+    And match response.model == 'Fabia'
 
   Scenario: Get vehicle by non-existent ID
     Given path '999'
@@ -24,15 +24,15 @@ Feature: Vehicle API
     Given request vehicle
     When method post
     Then status 201
-    And match response.statusCode == '200'
+    And match response.statusCode == '201'
     And match response.statusMsg == 'Vehicle created successfully'
 
   Scenario: Update an existing vehicle
     Given path '1'
-    And request { vin: '1HGCM82633A123456', vehicleYear: 2023, make: 'Honda', model: 'Civic', mileage: 16000 }
+    And request { vin: '212WH999', vehicleYear: 2023, make: 'Honda', model: 'Civic', mileage: 16000 }
     When method put
     Then status 200
-    And match response.statusCode == '201'
+    And match response.statusCode == '200'
     And match response.statusMsg == 'Vehicle updated successfully'
 
   Scenario: Delete an existing vehicle

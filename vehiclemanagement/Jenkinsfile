@@ -26,6 +26,7 @@ pipeline {
                 dir('vehiclemanagement') {
                     echo 'Running unit & integration & karate tests...'
                     bat "mvn test -Dtest=KarateSpringBootTestIT"
+                    archiveArtifacts artifacts: 'target/karate-reports/karate-summary.html', allowEmptyArchive: true
                     publishHTML([
                         reportDir: 'target/karate-reports',
                         reportFiles: 'karate-summary.html',

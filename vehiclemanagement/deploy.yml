@@ -1,0 +1,39 @@
+---
+- name: Deploy Vehicle Service
+  hosts: vehicle
+  become: true
+
+  environment:
+    DOCKER_HOST: unix:///var/run/docker.sock
+
+  tasks:
+    - name: Ensure Docker is installed
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Kill container
+      community.docker.docker_container:
+        name: vehicle
+        state: absent
+        force_kill: true
+
+    - name: Pull latest image from Docker Hub
+      community.docker.docker_image:
+        name: pmoxham/vehicle-service
+        source: pull
+
+    - name: Run the Docker container
+      community.docker.docker_container:
+        name: vehicle
+        image: pmoxham/vehicle-service
+        state: started
+        restart_policy: always
+        ports:
+          - "8081:8081"

@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        //DOCKERHUB = credentials('Dockerhub')
         MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
         INVENTORY_PATH = "/mnt/c/Microservices/VehicleService/vehiclemanagement/inventory.ini"
         PLAYBOOK_PATH = "/mnt/c/Microservices/VehicleService/vehiclemanagement/deploy.yml"
@@ -108,7 +109,7 @@ pipeline {
              steps {
                    dir('vehiclemanagement') {
                         script {
-                            bat 'wsl bash "ansible-playbook -i inventory.ini deploy.yaml"'
+                            bat 'wsl ansible-playbook -i inventory.ini deploy.yml'
                         }
                    }
              }

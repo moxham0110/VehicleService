@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
+        INVENTORY_PATH = "/mnt/c/Microservices/VehicleService/vehiclemanagement/inventory.ini"
+        PLAYBOOK_PATH = "/mnt/c/Microservices/VehicleService/vehiclemanagement/deploy.yml"
     }
 
     stages {
@@ -12,7 +14,7 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        /* stage('Build') {
             steps {
                 dir('vehiclemanagement') {
                     echo 'Building the project...'
@@ -30,10 +32,13 @@ pipeline {
                     publishHTML([
                         reportDir: 'target/karate-reports',
                         reportFiles: 'karate-summary.html',
-                        reportName: 'Karate Test Report'
+                        reportName: 'Karate Test Report',
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true
                     ])
                     bat "mvn test"
-                    junit 'target/surefire-reports/*.xml'
+                    junit 'target/surefire-reports *//*.xml'
                 }
             }
         }
@@ -81,7 +86,10 @@ pipeline {
                    publishHTML([
                        reportDir: 'target',
                        reportFiles: 'dependency-check-report.html',
-                       reportName: 'OWASP Dependency Check Report'
+                       reportName: 'OWASP Dependency Check Report',
+                       allowMissing: false,
+                       alwaysLinkToLastBuild: true,
+                       keepAll: true
                    ])
                }
            }
@@ -94,6 +102,16 @@ pipeline {
                     bat "mvn package"
                 }
             }
+        } */
+
+        stage('Deploy to EC2 via Ansible') {
+             steps {
+                   dir('vehiclemanagement') {
+                        script {
+                            bat 'wsl bash "ansible-playbook -i inventory.ini deploy.yaml"'
+                        }
+                   }
+             }
         }
     }
 

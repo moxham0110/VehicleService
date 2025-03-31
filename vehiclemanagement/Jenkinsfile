@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        //DOCKERHUB = credentials('Dockerhub')
         MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
         INVENTORY_PATH = "/mnt/c/Microservices/VehicleService/vehiclemanagement/inventory.ini"
         PLAYBOOK_PATH = "/mnt/c/Microservices/VehicleService/vehiclemanagement/deploy.yml"
+        DOCKERHUB_CREDENTIALS = credentials('pmoxhamdockerhub')
     }
 
     stages {
@@ -15,7 +15,7 @@ pipeline {
             }
         }
 
-        /* stage('Build') {
+        stage('Build') {
             steps {
                 dir('vehiclemanagement') {
                     echo 'Building the project...'
@@ -28,6 +28,8 @@ pipeline {
             steps {
                 dir('vehiclemanagement') {
                     echo 'Running unit & integration & karate tests...'
+                    bat "mvn test"
+                    junit 'target/surefire-reports/*.xml'
                     bat "mvn test -Dtest=KarateSpringBootTestIT"
                     archiveArtifacts artifacts: 'target/karate-reports/karate-summary.html', allowEmptyArchive: true
                     publishHTML([
@@ -38,8 +40,7 @@ pipeline {
                         alwaysLinkToLastBuild: true,
                         keepAll: true
                     ])
-                    bat "mvn test"
-                    junit 'target/surefire-reports *//*.xml'
+
                 }
             }
         }
@@ -78,7 +79,7 @@ pipeline {
             }
         }
 
-        stage('Security Scan (OWASP)') {
+        stage('OWASP Security Scan ') {
            steps {
                dir('vehiclemanagement') {
                    echo 'Running OWASP Dependency-Check...'
@@ -96,14 +97,28 @@ pipeline {
            }
         }
 
-        stage('Package') {
+        stage('Maven Package') {
             steps {
                 dir('vehiclemanagement') {
                     echo 'Packaging the application...'
                     bat "mvn package"
                 }
             }
-        } */
+        }
+
+        stage('Docker Login, Build Image, Tag Image, Push Image') {
+                    steps {
+                        dir('vehiclemanagement') {
+                            bat """
+                                docker login -u %DOCKERHUB_CREDENTIALS_USR% -p %DOCKERHUB_CREDENTIALS_PSW%
+                                docker build -t vehicle-service:latest .
+                                docker tag vehicle-service:latest pmoxham/vehicle-service:latest
+                                docker push pmoxham/vehicle-service:latest
+                            """
+
+                        }
+                    }
+                }
 
         stage('Deploy to EC2 via Ansible') {
              steps {

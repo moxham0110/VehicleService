@@ -28,17 +28,12 @@ public class VehicleController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/demo")
-    public ResponseEntity<String> getVehicle() {
-        return ResponseEntity.ok("Please give me high marks!");
-    }
-
     @PostMapping
     public ResponseEntity<ResponseDTO> createVehicle(@Valid @RequestBody VehicleDTO vehicleDTO) {
         service.createVehicle(vehicleDTO);
         ResponseDTO response = new ResponseDTO();
         response.setStatusCode("201");
-        response.setStatusMsg("Vehicle created successfully");
+        response.setStatusMsg("This change is for demo!");
         return ResponseEntity.status(201).body(response);
     }
 

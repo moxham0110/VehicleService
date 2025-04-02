@@ -29,8 +29,8 @@ public class VehicleController {
     }
 
     @GetMapping("/demo")
-    public String getVehicle() {
-        return "Please give me high marks!";
+    public ResponseEntity<String> getVehicle() {
+        return ResponseEntity.ok("Please give me high marks!");
     }
 
     @PostMapping

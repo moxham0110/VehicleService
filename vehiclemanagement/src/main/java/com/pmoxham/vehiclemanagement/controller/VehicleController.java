@@ -21,6 +21,11 @@ public class VehicleController {
         return ResponseEntity.ok(service.getAllVehicles());
     }
 
+    @GetMapping("/demo")
+    public String getDemo() {
+        return "This is for the demo!";
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<VehicleDTO> getVehicle(@Valid @PathVariable Long id) {
         return service.getVehicleById(id)
@@ -33,7 +38,7 @@ public class VehicleController {
         service.createVehicle(vehicleDTO);
         ResponseDTO response = new ResponseDTO();
         response.setStatusCode("201");
-        response.setStatusMsg("This change is for demo!");
+        response.setStatusMsg("Vehicle created successfully");
         return ResponseEntity.status(201).body(response);
     }
 
